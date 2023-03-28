@@ -196,8 +196,6 @@ http://localhost:3002/
 
 #### Docker Compose
 
-[Hub Address](https://hub.docker.com/repository/docker/chenzhaoyu94/chatgpt-web/general)
-
 ```yml
 version: '3'
 
@@ -318,20 +316,5 @@ Thanks to all the contributors!
   <img src="https://contrib.rocks/image?repo=Chanzhaoyu/chatgpt-web" />
 </a>
 
-## Sponsorship
-
-If you find this project helpful and circumstances permit, you can give me a little support. Thank you very much for your support~
-
-<div style="display: flex; gap: 20px;">
-	<div style="text-align: center">
-		<img style="max-width: 100%" src="./docs/wechat.png" alt="WeChat" />
-		<p>WeChat Pay</p>
-	</div>
-	<div style="text-align: center">
-		<img style="max-width: 100%" src="./docs/alipay.png" alt="Alipay" />
-		<p>Alipay</p>
-	</div>
-</div>
-
 ## License
-MIT © [ChenZhaoYu](./license)
+MIT
