@@ -201,7 +201,7 @@ version: '3'
 
 services:
   app:
-    image: chenzhaoyu94/chatgpt-web # always use latest, pull the tag image again when updating
+    image: refgd/chatgpt-web # always use latest, pull the tag image again when updating
     ports:
       - 127.0.0.1:3002:3002
     environment:

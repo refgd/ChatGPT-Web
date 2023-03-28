@@ -1,5 +1,5 @@
 import express from 'express'
-import type { RequestProps } from './types'
+import type { RequestConfigProps, RequestProps } from './types'
 import type { ChatMessage } from './chatgpt'
 import { chatConfig, chatReplyProcess, currentModel } from './chatgpt'
 import { auth } from './middleware/auth'
@@ -23,16 +23,17 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
   res.setHeader('Content-type', 'application/octet-stream')
 
   try {
-    const { prompt, options = {}, systemMessage } = req.body as RequestProps
+    const { prompt, options = {}, systemMessage, apiKey } = req.body as RequestProps
     let firstChunk = true
     await chatReplyProcess({
       message: prompt,
       lastContext: options,
-      process: (chat: ChatMessage) => {
+      onProgress: (chat: ChatMessage) => {
         res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
         firstChunk = false
       },
       systemMessage,
+      apiKey,
     })
   }
   catch (error) {
@@ -45,7 +46,8 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
 
 router.post('/config', auth, async (req, res) => {
   try {
-    const response = await chatConfig()
+    const { apiKey } = req.body as RequestConfigProps
+    const response = await chatConfig(apiKey)
     res.send(response)
   }
   catch (error) {

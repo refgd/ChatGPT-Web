@@ -59,6 +59,7 @@ export default {
     name: 'Name',
     description: 'Description',
     role: 'Role',
+    apikey: 'API Key',
     resetUserInfo: 'Reset UserInfo',
     chatHistory: 'ChatHistory',
     theme: 'Theme',

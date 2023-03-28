@@ -7,7 +7,7 @@ export function isString<T extends string>(value: T | unknown): value is string 
 }
 
 export function isNotEmptyString(value: any): boolean {
-  return typeof value === 'string' && value.length > 0
+  return typeof value === 'string' && value.trim().length > 0
 }
 
 export function isBoolean<T extends boolean>(value: T | unknown): value is boolean {

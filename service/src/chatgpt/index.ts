@@ -8,6 +8,7 @@ import fetch from 'node-fetch'
 import axios from 'axios'
 import { sendResponse } from '../utils'
 import { isNotEmptyString } from '../utils/is'
+import { deCrypto } from '../utils/crypto'
 import type { ApiModel, ChatContext, ChatGPTUnofficialProxyAPIOptions, ModelConfig } from '../types'
 import type { RequestOptions } from './types'
 
@@ -88,18 +89,24 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 })()
 
 async function chatReplyProcess(options: RequestOptions) {
-  const { message, lastContext, process, systemMessage } = options
+  const { message, lastContext, onProgress, systemMessage, apiKey } = options
   try {
     let options: SendMessageOptions = { timeoutMs }
 
-    if (apiModel === 'ChatGPTAPI') {
+    if (api instanceof ChatGPTAPI) {
       if (isNotEmptyString(systemMessage))
         options.systemMessage = systemMessage
+
+      if (isNotEmptyString(apiKey))
+        api.apiKey = deCrypto(apiKey)
+      else
+        api.apiKey = process.env.OPENAI_API_KEY
     }
 
     if (lastContext != null) {
       if (apiModel === 'ChatGPTAPI')
         options.parentMessageId = lastContext.parentMessageId
+
       else
         options = { ...lastContext }
     }
@@ -107,7 +114,7 @@ async function chatReplyProcess(options: RequestOptions) {
     const response = await api.sendMessage(message, {
       ...options,
       onProgress: (partialResponse) => {
-        process?.(partialResponse)
+        onProgress?.(partialResponse)
       },
     })
 
@@ -122,8 +129,8 @@ async function chatReplyProcess(options: RequestOptions) {
   }
 }
 
-async function fetchBalance() {
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY
+async function fetchBalance(apiKey: string) {
+  const OPENAI_API_KEY = isNotEmptyString(apiKey) ? deCrypto(apiKey) : process.env.OPENAI_API_KEY
   const OPENAI_API_BASE_URL = process.env.OPENAI_API_BASE_URL
 
   if (!isNotEmptyString(OPENAI_API_KEY))
@@ -144,8 +151,8 @@ async function fetchBalance() {
   }
 }
 
-async function chatConfig() {
-  const balance = await fetchBalance()
+async function chatConfig(apiKey: string) {
+  const balance = await fetchBalance(apiKey)
   const reverseProxy = process.env.API_REVERSE_PROXY ?? '-'
   const httpsProxy = (process.env.HTTPS_PROXY || process.env.ALL_PROXY) ?? '-'
   const socksProxy = (process.env.SOCKS_PROXY_HOST && process.env.SOCKS_PROXY_PORT)
