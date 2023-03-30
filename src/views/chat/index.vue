@@ -1,9 +1,9 @@
 <script setup lang='ts'>
 import type { Ref } from 'vue'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { NAutoComplete, NButton, NInput, useDialog, useMessage } from 'naive-ui'
+import { NAutoComplete, NButton, NInput, NSelect, useDialog, useMessage } from 'naive-ui'
 import html2canvas from 'html2canvas'
 import { Message } from './components'
 import { useScroll } from './hooks/useScroll'
@@ -15,7 +15,13 @@ import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { useChatStore, usePromptStore } from '@/store'
 import { fetchChatAPIProcess } from '@/api'
-import { t } from '@/locales'
+import { t, te } from '@/locales'
+import DefaultRoles from '@/assets/defaultRoles.json'
+
+interface RoleDescriptions {
+  [key: string]: string
+}
+const defaultRolesList: RoleDescriptions = DefaultRoles
 
 let controller = new AbortController()
 
@@ -37,6 +43,7 @@ const { usingContext, toggleUsingContext } = useUsingContext()
 const { uuid } = route.params as { uuid: string }
 
 const dataSources = computed(() => chatStore.getChatByUuid(+uuid))
+const currentChatHistory = computed(() => chatStore.getChatHistoryByCurrentActive)
 const conversationList = computed(() => dataSources.value.filter(item => (!item.inversion && !item.error)))
 
 const prompt = ref<string>('')
@@ -48,6 +55,44 @@ const promptStore = usePromptStore()
 
 // 使用storeToRefs，保证store修改后，联想部分能够重新渲染
 const { promptList: promptTemplate } = storeToRefs<any>(promptStore)
+
+const role = ref<string>(currentChatHistory.value?.role ?? 'chatgpt')
+const roleNameRef = ref<string>('')
+const roleName = computed({
+  get: () => {
+    return roleNameRef.value
+  },
+  set: (key: string) => {
+    if (te(`roles.${key}`))
+      roleNameRef.value = t(`roles.${key}`)
+
+    else
+      roleNameRef.value = key
+  },
+})
+roleName.value = role.value
+
+const roleOptions = ref<{ label: string; key: string; value: string }[]>([])
+
+function updateRoleOptions() {
+  const options: { label: string; key: string; value: string }[] = []
+
+  for (const key in defaultRolesList) {
+    if (Object.prototype.hasOwnProperty.call(defaultRolesList, key))
+      options.push({ label: t(`roles.${key}`), key, value: key })
+  }
+
+  for (const i of promptTemplate.value)
+    options.push({ label: i.key, key: i.key, value: i.key })
+
+  roleOptions.value = options
+}
+
+watch(promptTemplate, () => {
+  updateRoleOptions()
+}, { deep: true })
+
+updateRoleOptions()
 
 // 未知原因刷新页面，loading 状态不会重置，手动重置
 dataSources.value.forEach((item, index) => {
@@ -80,6 +125,7 @@ async function onConversation() {
       conversationOptions: null,
       requestOptions: { prompt: message, options: null },
     },
+    role.value,
   )
   scrollToBottom()
 
@@ -103,6 +149,7 @@ async function onConversation() {
       conversationOptions: null,
       requestOptions: { prompt: message, options: { ...options } },
     },
+    role.value,
   )
   scrollToBottom()
 
@@ -111,6 +158,7 @@ async function onConversation() {
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
+        role: role.value,
         options,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
@@ -241,6 +289,7 @@ async function onRegenerate(index: number) {
     const fetchChatAPIOnce = async () => {
       await fetchChatAPIProcess<Chat.ConversationResponse>({
         prompt: message,
+        role: role.value,
         options,
         signal: controller.signal,
         onDownloadProgress: ({ event }) => {
@@ -413,17 +462,18 @@ function handleStop() {
 // 搜索选项计算，这里使用value作为索引项，所以当出现重复value时渲染异常(多项同时出现选中效果)
 // 理想状态下其实应该是key作为索引项,但官方的renderOption会出现问题，所以就需要value反renderLabel实现
 const searchOptions = computed(() => {
-  if (prompt.value.startsWith('/')) {
-    return promptTemplate.value.filter((item: { key: string }) => item.key.toLowerCase().includes(prompt.value.substring(1).toLowerCase())).map((obj: { value: any }) => {
-      return {
-        label: obj.value,
-        value: obj.value,
-      }
-    })
-  }
-  else {
-    return []
-  }
+  return [] // 暂时关闭此功能, 后续可能会用到
+  // if (prompt.value.startsWith('/')) { // 暂时关闭此功能, 后续可能会用到
+  //   return promptTemplate.value.filter((item: { key: string }) => item.key.toLowerCase().includes(prompt.value.substring(1).toLowerCase())).map((obj: { value: any }) => {
+  //     return {
+  //       label: obj.value,
+  //       value: obj.value,
+  //     }
+  //   })
+  // }
+  // else {
+  //   return []
+  // }
 })
 
 // value反渲染key
@@ -484,12 +534,29 @@ onUnmounted(() => {
           :class="[isMobile ? 'p-2' : 'p-4']"
         >
           <template v-if="!dataSources.length">
+            <div class="flex items-center justify-center mt-4 text-center">
+              <span class="flex-shrink-0 w-[100px]">{{ $t('setting.role') }}</span>
+              <div class="flex flex-wrap items-center gap-4">
+                <NSelect
+                  style="width: 140px"
+                  :value="role"
+                  :options="roleOptions"
+                  @update-value="value => { role = value; roleName = value }"
+                />
+              </div>
+            </div>
             <div class="flex items-center justify-center mt-4 text-center text-neutral-300">
               <SvgIcon icon="ri:bubble-chart-fill" class="mr-2 text-3xl" />
               <span>Aha~</span>
             </div>
           </template>
           <template v-else>
+            <div class="flex items-center justify-center mt-4 text-center toptip">
+              <span class="flex-shrink-0 w-[100px]">{{ $t('setting.role') }}:</span>
+              <div class="flex flex-wrap items-center gap-4">
+                {{ roleName }}
+              </div>
+            </div>
             <div>
               <Message
                 v-for="(item, index) of dataSources"

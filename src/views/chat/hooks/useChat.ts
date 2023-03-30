@@ -7,8 +7,8 @@ export function useChat() {
     return chatStore.getChatByUuidAndIndex(uuid, index)
   }
 
-  const addChat = (uuid: number, chat: Chat.Chat) => {
-    chatStore.addChatByUuid(uuid, chat)
+  const addChat = (uuid: number, chat: Chat.Chat, role: string) => {
+    chatStore.addChatByUuid(uuid, chat, role)
   }
 
   const updateChat = (uuid: number, index: number, chat: Chat.Chat) => {

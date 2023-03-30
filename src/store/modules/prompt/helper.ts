@@ -1,6 +1,6 @@
 import { ss } from '@/utils/storage'
 
-const LOCAL_NAME = 'promptStore'
+const LOCAL_NAME = 'promptNewStore'
 
 export type PromptList = []
 

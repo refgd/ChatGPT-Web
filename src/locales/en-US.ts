@@ -72,7 +72,7 @@ export default {
     balance: 'API Balance',
   },
   store: {
-    siderButton: 'Prompt Store',
+    siderButton: 'Role Store',
     local: 'Local',
     online: 'Online',
     title: 'Title',
@@ -88,5 +88,14 @@ export default {
     importRepeatContent: 'Content is repeatedly skipped: {msg}',
     onlineImportWarning: 'Note: Please check the JSON file source!',
     downloadError: 'Please check the network status and JSON file validity',
+  },
+  roles: {
+    chatgpt: 'ChatGpt',
+    musician: 'Musician',
+    writer: 'Writer',
+    astrologer: 'Astrologer',
+    friend: 'Friend',
+    boyfriend: 'Boy Friend',
+    girlfriend: 'Girl Friend',
   },
 }

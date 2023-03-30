@@ -92,11 +92,11 @@ export const useChatStore = defineStore('chat-store', {
       return null
     },
 
-    addChatByUuid(uuid: number, chat: Chat.Chat) {
+    addChatByUuid(uuid: number, chat: Chat.Chat, role: string) {
       if (!uuid || uuid === 0) {
         if (this.history.length === 0) {
           const uuid = Date.now()
-          this.history.push({ uuid, title: chat.text, isEdit: false })
+          this.history.push({ uuid, title: chat.text, role, isEdit: false })
           this.chat.push({ uuid, data: [chat] })
           this.active = uuid
           this.recordState()
@@ -105,6 +105,7 @@ export const useChatStore = defineStore('chat-store', {
           this.chat[0].data.push(chat)
           if (this.history[0].title === 'New Chat')
             this.history[0].title = chat.text
+          this.history[0].role = role
           this.recordState()
         }
       }
@@ -114,6 +115,7 @@ export const useChatStore = defineStore('chat-store', {
         this.chat[index].data.push(chat)
         if (this.history[index].title === 'New Chat')
           this.history[index].title = chat.text
+        this.history[index].role = role
         this.recordState()
       }
     },

@@ -9,7 +9,7 @@ const settingStore = useSettingStore()
 
 const ms = useMessage()
 
-const systemMessage = ref(settingStore.systemMessage ?? '')
+// const systemMessage = ref(settingStore.systemMessage ?? '')
 const apiKey = ref(settingStore.apiKey ?? '')
 
 function updateSettings(options: Partial<SettingsState>) {
@@ -27,7 +27,7 @@ function handleReset() {
 <template>
   <div class="p-4 space-y-5 min-h-[200px]">
     <div class="space-y-6">
-      <div class="flex items-center space-x-4">
+      <!-- <div class="flex items-center space-x-4">
         <span class="flex-shrink-0 w-[100px]">{{ $t('setting.role') }}</span>
         <div class="flex-1">
           <NInput v-model:value="systemMessage" placeholder="" />
@@ -35,7 +35,7 @@ function handleReset() {
         <NButton size="tiny" text type="primary" @click="updateSettings({ systemMessage })">
           {{ $t('common.save') }}
         </NButton>
-      </div>
+      </div> -->
       <div class="flex items-center space-x-4">
         <span class="flex-shrink-0 w-[100px]">{{ $t('setting.apikey') }}</span>
         <div class="flex-1">

@@ -72,7 +72,7 @@ export default {
     balance: 'API余額',
   },
   store: {
-    siderButton: '提示詞商店',
+    siderButton: '角色商店',
     local: '本機',
     online: '線上',
     title: '標題',
@@ -88,5 +88,14 @@ export default {
     importRepeatContent: '因內容重複跳過：{msg}',
     onlineImportWarning: '注意：請檢查 JSON 檔案來源！',
     downloadError: '請檢查網路狀態與 JSON 檔案有效性',
+  },
+  roles: {
+    chatgpt: 'ChatGpt',
+    musician: '音樂家',
+    writer: '作家',
+    astrologer: '占星師',
+    friend: '朋友',
+    boyfriend: '男朋友',
+    girlfriend: '女朋友',
   },
 }
