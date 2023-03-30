@@ -90,7 +90,7 @@ export default {
     downloadError: '请检查网络状态与 JSON 文件有效性',
   },
   roles: {
-    chatgpt: 'ChatGpt',
+    chatgpt: 'ChatGPT',
     musician: '音乐家',
     writer: '作家',
     astrologer: '占星师',

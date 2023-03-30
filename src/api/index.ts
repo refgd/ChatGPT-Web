@@ -40,9 +40,11 @@ export function fetchChatAPIProcess<T = any>(
   if (!isNotEmptyString(systemMessage))
     systemMessage = defaultRolesList.chatgpt
 
+  const currentDate = new Date().toISOString().split('T')[0]
+
   return post<T>({
     url: '/chat-process',
-    data: { prompt: params.prompt, options: params.options, systemMessage, apiKey: settingStore.apiEnKey },
+    data: { prompt: params.prompt, options: params.options, systemMessage: `${systemMessage}\nCurrent date: ${currentDate}`, apiKey: settingStore.apiEnKey },
     signal: params.signal,
     onDownloadProgress: params.onDownloadProgress,
   })

@@ -90,7 +90,7 @@ export default {
     downloadError: 'Please check the network status and JSON file validity',
   },
   roles: {
-    chatgpt: 'ChatGpt',
+    chatgpt: 'ChatGPT',
     musician: 'Musician',
     writer: 'Writer',
     astrologer: 'Astrologer',
