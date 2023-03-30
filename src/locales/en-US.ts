@@ -97,5 +97,6 @@ export default {
     friend: 'Friend',
     boyfriend: 'Boy Friend',
     girlfriend: 'Girl Friend',
+    tarot: 'Tarot Fortune Teller',
   },
 }

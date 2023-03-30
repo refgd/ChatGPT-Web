@@ -97,5 +97,6 @@ export default {
     friend: '朋友',
     boyfriend: '男朋友',
     girlfriend: '女朋友',
+    tarot: '塔罗占卜师',
   },
 }
