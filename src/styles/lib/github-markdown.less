@@ -1100,3 +1100,16 @@ html {
 .markdown-body ::-webkit-calendar-picker-indicator {
   filter: invert(50%);
 }
+
+.markdown-body .typing{
+  &::after{
+      content: '';
+      border-right: .15em solid orange;
+      animation: blink-caret .75s step-end infinite;
+      opacity: 1;
+  }
+}
+
+@keyframes blink-caret {
+    50% { opacity: 0 }
+}
