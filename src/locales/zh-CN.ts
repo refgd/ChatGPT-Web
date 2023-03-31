@@ -26,6 +26,7 @@ export default {
     failed: '操作失败',
     verify: '验证',
     unauthorizedTips: '未经授权，请先进行验证。',
+    auto: '自动',
   },
   chat: {
     newChatButton: '新建聊天',
@@ -98,5 +99,6 @@ export default {
     boyfriend: '男朋友',
     girlfriend: '女朋友',
     tarot: '塔罗占卜师',
+    fortune: '算命先生',
   },
 }

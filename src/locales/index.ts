@@ -8,7 +8,25 @@ import type { Language } from '@/store/modules/app/helper'
 
 const appStore = useAppStoreWithOut()
 
-const defaultLocale = appStore.language || 'zh-CN'
+type Locales = 'zh-CN' | 'zh-TW' | 'en-US'
+
+function isSupportedLocale(locale: string): locale is Locales {
+  return ['zh-CN', 'zh-TW', 'en-US'].includes(locale)
+}
+
+function getBrowserLanguage(): Locales {
+  const languages = navigator.languages
+  for (let index = 0; index < languages.length; index++) {
+    const lang = languages[index]
+    if (lang === 'zh')
+      return 'zh-CN'
+    else if (isSupportedLocale(lang))
+      return lang
+  }
+
+  return 'en-US'
+}
+const defaultLocale = appStore.language || getBrowserLanguage()
 
 const i18n = createI18n({
   locale: defaultLocale,
@@ -25,7 +43,11 @@ export const t = i18n.global.t
 export const te = i18n.global.te
 
 export function setLocale(locale: Language) {
-  i18n.global.locale = locale
+  if (locale === 'auto')
+    i18n.global.locale = getBrowserLanguage()
+
+  else
+    i18n.global.locale = locale
 }
 
 export function setupI18n(app: App) {

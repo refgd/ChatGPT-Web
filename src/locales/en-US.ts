@@ -26,6 +26,7 @@ export default {
     failed: 'Failed',
     verify: 'Verify',
     unauthorizedTips: 'Unauthorized, please verify first.',
+    auto: 'Auto',
   },
   chat: {
     newChatButton: 'New Chat',
@@ -98,5 +99,6 @@ export default {
     boyfriend: 'Boy Friend',
     girlfriend: 'Girl Friend',
     tarot: 'Tarot Fortune Teller',
+    fortune: 'Chinese Fortune Teller',
   },
 }

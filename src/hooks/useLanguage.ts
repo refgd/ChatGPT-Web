@@ -18,7 +18,7 @@ export function useLanguage() {
         setLocale('zh-TW')
         return zhTW
       default:
-        setLocale('zh-CN')
+        setLocale('auto')
         return enUS
     }
   })
