@@ -1,4 +1,5 @@
 import express from 'express'
+import compression from 'compression'
 import type { RequestConfigProps, RequestProps } from './types'
 import type { ChatMessage } from './chatgpt'
 import { chatConfig, chatReplyProcess, currentModel } from './chatgpt'
@@ -9,6 +10,7 @@ import { isNotEmptyString } from './utils/is'
 const app = express()
 const router = express.Router()
 
+app.use(compression({ level: 6 }))
 app.use(express.static('public'))
 app.use(express.json())
 
@@ -31,6 +33,7 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
       onProgress: (chat: ChatMessage) => {
         res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
         firstChunk = false
+        res.flush()
       },
       systemMessage,
       apiKey,
