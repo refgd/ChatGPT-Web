@@ -532,7 +532,7 @@ onUnmounted(() => {
           :class="[isMobile ? 'p-2' : 'p-4']"
         >
           <template v-if="!dataSources.length">
-            <div class="flex items-center justify-center mt-4 text-center">
+            <div class="flex items-center justify-center mb-4 text-center">
               <span class="flex-shrink-0 w-[100px]">{{ $t('setting.role') }}</span>
               <div class="flex flex-wrap items-center gap-4">
                 <NSelect
@@ -549,7 +549,7 @@ onUnmounted(() => {
             </div>
           </template>
           <template v-else>
-            <div class="flex items-center justify-center mt-4 text-center toptip">
+            <div class="flex items-center justify-center mb-4 text-center toptip">
               <span class="flex-shrink-0 w-[100px]">{{ $t('setting.role') }}:</span>
               <div class="flex flex-wrap items-center gap-4">
                 {{ roleName }}
