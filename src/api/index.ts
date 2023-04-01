@@ -1,13 +1,7 @@
 import type { AxiosProgressEvent, GenericAbortSignal } from 'axios'
 import { post } from '@/utils/request'
-import { usePromptStore, useSettingStore } from '@/store'
-import DefaultRoles from '@/assets/defaultRoles.json'
-import { isNotEmptyString } from '@/utils/is'
-
-interface RoleDescriptions {
-  [key: string]: string
-}
-const defaultRolesList: RoleDescriptions = DefaultRoles
+import { useAuthStoreWithout, usePromptStore, useSettingStore } from '@/store'
+import { isEmptyString } from '@/utils/is'
 
 export function fetchChatConfig<T = any>() {
   const settingStore = useSettingStore()
@@ -27,24 +21,23 @@ export function fetchChatAPIProcess<T = any>(
     onDownloadProgress?: (progressEvent: AxiosProgressEvent) => void },
 ) {
   const settingStore = useSettingStore()
-  let systemMessage = ''
-  if (Object.prototype.hasOwnProperty.call(DefaultRoles, params.role))
-    systemMessage = defaultRolesList[params.role]
+  const authStore = useAuthStoreWithout()
+  const defaultRoles = authStore.session?.roles
 
-  if (!isNotEmptyString(systemMessage)) {
+  let systemMessage = ''
+  if (defaultRoles && defaultRoles.includes(params.role))
+    systemMessage = params.role
+
+  if (isEmptyString(systemMessage)) {
     const promptStore = usePromptStore()
     const prompt = promptStore.getPromptByKey(params.role)
     if (prompt)
       systemMessage = prompt.value
   }
-  if (!isNotEmptyString(systemMessage))
-    systemMessage = defaultRolesList.chatgpt
-
-  const currentDate = new Date().toISOString().split('T')[0]
 
   return post<T>({
     url: '/chat-process',
-    data: { prompt: params.prompt, options: params.options, systemMessage: `${systemMessage}\nCurrent date: ${currentDate}`, apiKey: settingStore.apiEnKey },
+    data: { prompt: params.prompt, options: params.options, systemMessage, apiKey: settingStore.apiEnKey },
     signal: params.signal,
     onDownloadProgress: params.onDownloadProgress,
   })

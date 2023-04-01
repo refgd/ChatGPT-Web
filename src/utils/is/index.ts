@@ -54,6 +54,6 @@ export function isFile<T extends File>(value: T | unknown): value is T {
   return Object.prototype.toString.call(value) === '[object File]'
 }
 
-export function isNotEmptyString(value: any): boolean {
-  return typeof value === 'string' && value.trim().length > 0
+export function isEmptyString(value: any): boolean {
+  return typeof value !== 'string' || value.trim().length === 0
 }

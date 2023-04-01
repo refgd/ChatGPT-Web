@@ -7,8 +7,10 @@ import httpsProxyAgent from 'https-proxy-agent'
 import fetch from 'node-fetch'
 import axios from 'axios'
 import { sendResponse } from '../utils'
-import { isNotEmptyString } from '../utils/is'
+import { isEmptyString } from '../utils/is'
 import { deCrypto } from '../utils/crypto'
+import { getSysMessageByKey } from '../utils/prompts'
+
 import type { ApiModel, ChatContext, ChatGPTUnofficialProxyAPIOptions, ModelConfig } from '../types'
 import type { RequestOptions } from './types'
 
@@ -30,7 +32,7 @@ const disableDebug: boolean = process.env.OPENAI_API_DISABLE_DEBUG === 'true'
 
 let apiModel: ApiModel
 
-if (!isNotEmptyString(process.env.OPENAI_API_KEY) && !isNotEmptyString(process.env.OPENAI_ACCESS_TOKEN))
+if (isEmptyString(process.env.OPENAI_API_KEY) && isEmptyString(process.env.OPENAI_ACCESS_TOKEN))
   throw new Error('Missing OPENAI_API_KEY or OPENAI_ACCESS_TOKEN environment variable')
 
 let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
@@ -38,10 +40,10 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 (async () => {
   // More Info: https://github.com/transitive-bullshit/chatgpt-api
 
-  if (isNotEmptyString(process.env.OPENAI_API_KEY)) {
+  if (!isEmptyString(process.env.OPENAI_API_KEY)) {
     const OPENAI_API_BASE_URL = process.env.OPENAI_API_BASE_URL
     const OPENAI_API_MODEL = process.env.OPENAI_API_MODEL
-    const model = isNotEmptyString(OPENAI_API_MODEL) ? OPENAI_API_MODEL : 'gpt-3.5-turbo'
+    const model = !isEmptyString(OPENAI_API_MODEL) ? OPENAI_API_MODEL : 'gpt-3.5-turbo'
 
     const options: ChatGPTAPIOptions = {
       apiKey: process.env.OPENAI_API_KEY,
@@ -62,7 +64,7 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
       }
     }
 
-    if (isNotEmptyString(OPENAI_API_BASE_URL))
+    if (!isEmptyString(OPENAI_API_BASE_URL))
       options.apiBaseUrl = `${OPENAI_API_BASE_URL}/v1`
 
     setupProxy(options)
@@ -76,10 +78,10 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
       accessToken: process.env.OPENAI_ACCESS_TOKEN,
       debug: !disableDebug,
     }
-    if (isNotEmptyString(OPENAI_API_MODEL))
+    if (!isEmptyString(OPENAI_API_MODEL))
       options.model = OPENAI_API_MODEL
 
-    if (isNotEmptyString(process.env.API_REVERSE_PROXY))
+    if (!isEmptyString(process.env.API_REVERSE_PROXY))
       options.apiReverseProxyUrl = process.env.API_REVERSE_PROXY
 
     setupProxy(options)
@@ -95,10 +97,18 @@ async function chatReplyProcess(options: RequestOptions) {
     let options: SendMessageOptions = { timeoutMs }
 
     if (api instanceof ChatGPTAPI) {
-      if (isNotEmptyString(systemMessage))
-        options.systemMessage = systemMessage
+      let sysMessage = ''
+      if (!isEmptyString(systemMessage)) {
+        sysMessage = getSysMessageByKey(systemMessage)
+        if (isEmptyString(sysMessage))
+          sysMessage = systemMessage
+      }
+      else { sysMessage = getSysMessageByKey('chatgpt') }
 
-      if (isNotEmptyString(apiKey))
+      const currentDate = new Date().toISOString().split('T')[0]
+      options.systemMessage = `${sysMessage}\nCurrent date: ${currentDate}`
+
+      if (!isEmptyString(apiKey))
         api.apiKey = deCrypto(apiKey)
       else
         api.apiKey = process.env.OPENAI_API_KEY
@@ -131,13 +141,13 @@ async function chatReplyProcess(options: RequestOptions) {
 }
 
 async function fetchBalance(apiKey: string) {
-  const OPENAI_API_KEY = isNotEmptyString(apiKey) ? deCrypto(apiKey) : process.env.OPENAI_API_KEY
+  const OPENAI_API_KEY = !isEmptyString(apiKey) ? deCrypto(apiKey) : process.env.OPENAI_API_KEY
   const OPENAI_API_BASE_URL = process.env.OPENAI_API_BASE_URL
 
-  if (!isNotEmptyString(OPENAI_API_KEY))
+  if (isEmptyString(OPENAI_API_KEY))
     return Promise.resolve('-')
 
-  const API_BASE_URL = isNotEmptyString(OPENAI_API_BASE_URL)
+  const API_BASE_URL = !isEmptyString(OPENAI_API_BASE_URL)
     ? OPENAI_API_BASE_URL
     : 'https://api.openai.com'
 
@@ -166,19 +176,19 @@ async function chatConfig(apiKey: string) {
 }
 
 function setupProxy(options: ChatGPTAPIOptions | ChatGPTUnofficialProxyAPIOptions) {
-  if (isNotEmptyString(process.env.SOCKS_PROXY_HOST) && isNotEmptyString(process.env.SOCKS_PROXY_PORT)) {
+  if (!isEmptyString(process.env.SOCKS_PROXY_HOST) && !isEmptyString(process.env.SOCKS_PROXY_PORT)) {
     const agent = new SocksProxyAgent({
       hostname: process.env.SOCKS_PROXY_HOST,
       port: process.env.SOCKS_PROXY_PORT,
-      userId: isNotEmptyString(process.env.SOCKS_PROXY_USERNAME) ? process.env.SOCKS_PROXY_USERNAME : undefined,
-      password: isNotEmptyString(process.env.SOCKS_PROXY_PASSWORD) ? process.env.SOCKS_PROXY_PASSWORD : undefined,
+      userId: !isEmptyString(process.env.SOCKS_PROXY_USERNAME) ? process.env.SOCKS_PROXY_USERNAME : undefined,
+      password: !isEmptyString(process.env.SOCKS_PROXY_PASSWORD) ? process.env.SOCKS_PROXY_PASSWORD : undefined,
     })
     options.fetch = (url, options) => {
       return fetch(url, { agent, ...options })
     }
   }
   else {
-    if (isNotEmptyString(process.env.HTTPS_PROXY) || isNotEmptyString(process.env.ALL_PROXY)) {
+    if (!isEmptyString(process.env.HTTPS_PROXY) || !isEmptyString(process.env.ALL_PROXY)) {
       const httpsProxy = process.env.HTTPS_PROXY || process.env.ALL_PROXY
       if (httpsProxy) {
         const agent = new HttpsProxyAgent(httpsProxy)

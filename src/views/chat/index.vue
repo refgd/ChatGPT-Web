@@ -13,15 +13,9 @@ import { useUsingContext } from './hooks/useUsingContext'
 import HeaderComponent from './components/Header/index.vue'
 import { HoverButton, SvgIcon } from '@/components/common'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
-import { useChatStore, usePromptStore } from '@/store'
+import { useAuthStoreWithout, useChatStore, usePromptStore } from '@/store'
 import { fetchChatAPIProcess } from '@/api'
 import { t, te } from '@/locales'
-import DefaultRoles from '@/assets/defaultRoles.json'
-
-interface RoleDescriptions {
-  [key: string]: string
-}
-const defaultRolesList: RoleDescriptions = DefaultRoles
 
 let controller = new AbortController()
 
@@ -32,6 +26,7 @@ const dialog = useDialog()
 const ms = useMessage()
 
 const chatStore = useChatStore()
+const authStore = useAuthStoreWithout()
 
 useCopyCode()
 
@@ -76,10 +71,12 @@ const roleOptions = ref<{ label: string; key: string; value: string }[]>([])
 
 function updateRoleOptions() {
   const options: { label: string; key: string; value: string }[] = []
+  const defaultRoles = authStore.session?.roles
 
-  for (const key in defaultRolesList) {
-    if (Object.prototype.hasOwnProperty.call(defaultRolesList, key))
+  if (defaultRoles) {
+    defaultRoles.forEach((key) => {
       options.push({ label: t(`roles.${key}`), key, value: key })
+    })
   }
 
   for (const i of promptTemplate.value)

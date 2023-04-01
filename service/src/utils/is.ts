@@ -6,8 +6,8 @@ export function isString<T extends string>(value: T | unknown): value is string 
   return Object.prototype.toString.call(value) === '[object String]'
 }
 
-export function isNotEmptyString(value: any): boolean {
-  return typeof value === 'string' && value.trim().length > 0
+export function isEmptyString(value: any): boolean {
+  return typeof value !== 'string' || value.trim().length === 0
 }
 
 export function isBoolean<T extends boolean>(value: T | unknown): value is boolean {

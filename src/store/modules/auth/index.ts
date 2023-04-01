@@ -6,6 +6,7 @@ import { fetchSession } from '@/api'
 interface SessionResponse {
   auth: boolean
   model: 'ChatGPTAPI' | 'ChatGPTUnofficialProxyAPI'
+  roles: string[]
 }
 
 export interface AuthState {
