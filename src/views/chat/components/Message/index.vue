@@ -10,6 +10,9 @@ import { t } from '@/locales'
 import { useBasicLayout } from '@/hooks/useBasicLayout'
 
 interface Props {
+  index?: number
+  total?: number
+  finish?: string | null
   dateTime?: string
   text?: string
   inversion?: boolean
@@ -18,8 +21,8 @@ interface Props {
 }
 
 interface Emit {
-  (ev: 'regenerate'): void
   (ev: 'delete'): void
+  (ev: 'continue'): void
 }
 
 const props = defineProps<Props>()
@@ -74,9 +77,8 @@ function handleSelect(key: 'copyText' | 'delete' | 'toggleRenderType') {
   }
 }
 
-function handleRegenerate() {
-  messageRef.value?.scrollIntoView()
-  emit('regenerate')
+function handleContinue() {
+  emit('continue')
 }
 </script>
 
@@ -102,20 +104,17 @@ function handleRegenerate() {
       >
         <TextComponent
           ref="textRef"
+          :index="index"
+          :total="total"
           :inversion="inversion"
           :error="error"
           :text="text"
           :loading="loading"
           :as-raw-text="asRawText"
+          :finish="finish"
+          @continue="handleContinue"
         />
         <div class="flex flex-col">
-          <button
-            v-if="!inversion"
-            class="mb-2 transition text-neutral-300 hover:text-neutral-800 dark:hover:text-neutral-300"
-            @click="handleRegenerate"
-          >
-            <SvgIcon icon="ri:restart-line" />
-          </button>
           <NDropdown
             :trigger="isMobile ? 'click' : 'hover'"
             :placement="!inversion ? 'right' : 'left'"

@@ -312,7 +312,7 @@ A: One possible reason is that after Nginx reverse proxying, buffering is turned
 
 Q: The content returned is incomplete?
 
-A: There is a length limit for the content returned by the API each time. You can modify the `VITE_GLOB_OPEN_LONG_REPLY` field in the `.env` file under the root directory, set it to `true`, and rebuild the front-end to enable the long reply feature, which can return the full content. It should be noted that using this feature may bring more API usage fees.
+A: There is a length limit for the content returned by the API each time.
 
 ## Contributing
 

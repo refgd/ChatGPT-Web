@@ -10,6 +10,7 @@ import { sendResponse } from '../utils'
 import { isEmptyString } from '../utils/is'
 import { deCrypto } from '../utils/crypto'
 import { getSysMessageByKey } from '../utils/prompts'
+import { MTimeout } from '../utils/timeout'
 
 import type { ApiModel, ChatContext, ChatGPTUnofficialProxyAPIOptions, ModelConfig } from '../types'
 import type { RequestOptions } from './types'
@@ -93,8 +94,10 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 
 async function chatReplyProcess(options: RequestOptions) {
   const { message, lastContext, onProgress, systemMessage, apiKey } = options
+  let timeoutHandle: MTimeout
+
   try {
-    let options: SendMessageOptions = { timeoutMs }
+    let options: SendMessageOptions = { }
 
     if (api instanceof ChatGPTAPI) {
       let sysMessage = ''
@@ -122,16 +125,34 @@ async function chatReplyProcess(options: RequestOptions) {
         options = { ...lastContext }
     }
 
+    if (timeoutMs) {
+      const controller = new AbortController()
+      options.abortSignal = controller.signal
+
+      timeoutHandle = new MTimeout(timeoutMs)
+      timeoutHandle.onTimeout = () => {
+        controller.abort()
+      }
+    }
+
     const response = await api.sendMessage(message, {
       ...options,
       onProgress: (partialResponse) => {
-        onProgress?.(partialResponse)
+        onProgress?.(partialResponse, timeoutHandle)
       },
     })
+
+    if (timeoutHandle)
+      timeoutHandle.cancel()
+    timeoutHandle = undefined
 
     return sendResponse({ type: 'Success', data: response })
   }
   catch (error: any) {
+    if (timeoutHandle)
+      timeoutHandle.cancel()
+    timeoutHandle = undefined
+
     const code = error.statusCode
     global.console.log(error)
     if (Reflect.has(ErrorCodeMessage, code))

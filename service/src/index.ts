@@ -7,6 +7,7 @@ import { auth } from './middleware/auth'
 import { limiter } from './middleware/limiter'
 import { isEmptyString } from './utils/is'
 import { getRolesKey } from './utils/prompts'
+import type { MTimeout } from './utils/timeout'
 
 const app = express()
 const router = express.Router()
@@ -25,14 +26,36 @@ app.all('*', (_, res, next) => {
 router.post('/chat-process', [auth, limiter], async (req, res) => {
   res.setHeader('Content-type', 'application/octet-stream')
 
+  let firstChunk = true
+  let tHandle
+
   try {
+    req.on('close', () => {
+      if (tHandle)
+        tHandle.timeOut()
+    }).on('aborted', () => {
+      if (tHandle)
+        tHandle.timeOut()
+    })
+
+    res.on('close', () => {
+      if (tHandle)
+        tHandle.timeOut()
+    }).on('aborted', () => {
+      if (tHandle)
+        tHandle.timeOut()
+    })
+
     const { prompt, options = {}, systemMessage, apiKey } = req.body as RequestProps
-    let firstChunk = true
     await chatReplyProcess({
       message: prompt,
       lastContext: options,
-      onProgress: (chat: ChatMessage) => {
-        res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
+      onProgress: (chat: ChatMessage, timeoutHandle?: MTimeout) => {
+        if (timeoutHandle) {
+          tHandle = timeoutHandle
+          timeoutHandle.reset()
+        }
+        res.write((firstChunk ? '' : '\n') + JSON.stringify(chat))
         firstChunk = false
         res.flush()
       },
@@ -41,9 +64,10 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
     })
   }
   catch (error) {
-    res.write(JSON.stringify(error))
+    res.write((firstChunk ? '' : '\n') + JSON.stringify({ role: 'assistant', error: JSON.stringify(error), choices: [{ delta: {}, index: 0, finish_reason: 'error' }] }))
   }
   finally {
+    tHandle = undefined
     res.end()
   }
 })
