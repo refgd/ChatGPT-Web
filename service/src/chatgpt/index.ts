@@ -161,6 +161,14 @@ async function chatReplyProcess(options: RequestOptions) {
   }
 }
 
+function formatDate(date) {
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
 async function fetchBalance(apiKey: string) {
   const OPENAI_API_KEY = !isEmptyString(apiKey) ? deCrypto(apiKey) : process.env.OPENAI_API_KEY
   const OPENAI_API_BASE_URL = process.env.OPENAI_API_BASE_URL
@@ -173,10 +181,26 @@ async function fetchBalance(apiKey: string) {
     : 'https://api.openai.com'
 
   try {
+    const now = new Date().getTime()
+    const startDate = new Date(now - 90 * 24 * 60 * 60 * 1000)
+    const endDate = new Date(now + 24 * 60 * 60 * 1000)
+
+    const urlSubscription = `${API_BASE_URL}/v1/dashboard/billing/subscription`
+    const urlUsage = `${API_BASE_URL}/v1/dashboard/billing/usage?start_date=${formatDate(startDate)}&end_date=${formatDate(endDate)}`
     const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` }
-    const response = await axios.get(`${API_BASE_URL}/dashboard/billing/credit_grants`, { headers })
-    const balance = response.data.total_available ?? 0
-    return Promise.resolve(balance.toFixed(3))
+
+    // 获取API限额
+    let response = await axios.get(urlSubscription, { headers })
+    const totalAmount = response.data.hard_limit_usd
+
+    // 获取已使用量
+    response = await axios.get(urlUsage, { headers })
+    const totalUsage = response.data.total_usage / 100
+
+    // 计算剩余额度
+    const remaining = totalAmount - totalUsage
+
+    return Promise.resolve(remaining.toFixed(3))
   }
   catch {
     return Promise.resolve('-')
